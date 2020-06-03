@@ -1,0 +1,10 @@
+{
+  "name": "mongo-debezium-cdc",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "mongodb.hosts": "mongo1:27017",
+    "mongodb.name": "demo",
+    "database.whitelist": "mydb",
+    "collection.whitelist": "mydb.colors"
+  }
+}

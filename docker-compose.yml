@@ -1,0 +1,92 @@
+version: '3.2'
+services:
+  mongo1:
+    image: "mongo:4.0"
+    container_name: mongo1
+    command: --replSet rs0 --smallfiles --oplogSize 128
+    volumes:
+      - rs1:/data/db
+    ports:
+      - "27017:27017"
+    restart: always
+
+  mongo2:
+    image: "mongo:4.0"
+    container_name: mongo2
+    command: --replSet rs0 --smallfiles --oplogSize 128
+    volumes:
+      - rs2:/data/db
+    ports:
+      - "27018:27017"
+    restart: always
+
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    hostname: zookeeper
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    volumes:
+      - zookeeper:/opt/zookeeper-3.4.13
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
+    environment:
+      # https://docs.confluent.io/current/kafka/multi-node.html#configure-multi-node-environment
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://kafka:9094
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:9094
+      KAFKA_LOG_DIRS: /kafka/logs
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kafka:/kafka
+
+  connect:
+    image: debezium-bigquery
+    container_name: connect
+    depends_on:
+      - kafka
+      - zookeeper
+    ports:
+      - 8083:8083
+    environment:
+      # https://debezium.io/documentation/reference/tutorial.html
+      # https://debezium.io/documentation/reference/1.1/connectors/mongodb.html
+      # https://github.com/wepay/kafka-connect-bigquery/wiki/Connector-Configuration
+      # https://docs.confluent.io/current/connect/transforms/extracttopic.html
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: demo_configs
+      OFFSET_STORAGE_TOPIC: demo_offsets
+      STATUS_STORAGE_TOPIC: demo_statuses
+    volumes:
+      - "./credential.json:/kafka/credential.json"
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.4.0
+    hostname: schema-registry
+    depends_on:
+      - kafka
+      - zookeeper
+    ports:
+      - 8081:8081
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
+
+volumes:
+  kafka:
+  zookeeper:
+  rs1:
+  rs2:

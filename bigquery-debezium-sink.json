@@ -1,0 +1,16 @@
+{
+  "name": "bigquery-debezium-sink",
+  "config": {
+    "connector.class": "com.wepay.kafka.connect.bigquery.BigQuerySinkConnector",
+    "schemaRetriever": "com.wepay.kafka.connect.bigquery.schemaregistry.schemaretriever.SchemaRegistrySchemaRetriever",
+    "schemaRegistryLocation": "http://schema-registry:8081",
+    "autoCreateTables": true,
+    "autoUpdateSchemas": true,
+    "allBQFieldsNullable": true,
+    "topics": "demo.mydb.colors",
+    "topicsToTables":"demo.mydb.colors=colors",
+    "project": "PROJECT_NAME",
+    "keyfile": "/kafka/credential.json",
+    "datasets": ".*=DATASET_NAME"
+  }
+}
