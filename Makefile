@@ -16,12 +16,12 @@ curl_connectors:
 # CDC Configurations
 .PHONY: curl_add_mongodb_cdc_connector
 curl_add_mongodb_cdc_connector:
-	curl -X POST -H "Content-Type: application/json" -d @mongo-debezium-cdc.json http://localhost:8083/connectors | json_pp
+	curl -X POST -H "Content-Type: application/json" -d @config-cdc-mongodb.json http://localhost:8083/connectors | json_pp
 	@echo
 
 .PHONY: curl_remove_mongodb_cdc_connector
 curl_remove_mongodb_cdc_connector:
-	curl -X DELETE http://localhost:8083/connectors/mongo-debezium-cdc | json_pp
+	curl -X DELETE http://localhost:8083/connectors/config-cdc-mongodb | json_pp
 	@echo
 
 .PHONY: curl_add_mongodb_value_schema
@@ -45,17 +45,17 @@ create_replica_set:
 	@echo
 
 .PHONY: setup_cdc
-setup_cdc: create_replica_set curl_add_mongodb_cdc_connector curl_add_mongodb_value_schema
+setup_cdc: create_replica_set curl_add_mongodb_cdc_connector
 
 # SINK Configurations
 .PHONY: curl_add_bigquery_sink_connector
 curl_add_bigquery_sink_connector:
-	curl -X POST -H "Content-Type: application/json" -d @bigquery-debezium-sink.json http://localhost:8083/connectors | json_pp
+	curl -X POST -H "Content-Type: application/json" -d @config-sink-bigquery.json http://localhost:8083/connectors | json_pp
 	@echo
 
 .PHONY: curl_remove_bigquery_sink_connector
 curl_remove_bigquery_sink_connector:
-	curl -X DELETE http://localhost:8083/connectors/bigquery-debezium-sink | json_pp
+	curl -X DELETE http://localhost:8083/connectors/config-sink-bigquery | json_pp
 	@echo
 
 .PHONY: setup_sink
@@ -67,6 +67,6 @@ view_topic_data:
 
 .PHONY: curl_connector_status
 curl_connector_status:
-	curl http://localhost:8083/connectors/mongo-debezium-cdc/status | json_pp
-	curl http://localhost:8083/connectors/bigquery-debezium-sink/status | json_pp
+	curl http://localhost:8083/connectors/config-cdc-mongodb/status | json_pp
+	curl http://localhost:8083/connectors/config-sink-bigquery/status | json_pp
 	@echo
